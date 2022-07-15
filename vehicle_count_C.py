@@ -11,7 +11,7 @@ from tracker import *
 tracker = EuclideanDistTracker()
 
 # Initialize the videocapture object
-cap = cv2.VideoCapture('test.avi')
+cap = cv2.VideoCapture('./runtime/Pexels Videos 2109463.mp4')
 input_size = 320
 
 # Detection confidence threshold
@@ -23,13 +23,13 @@ font_size = 0.5
 font_thickness = 2
 
 # Middle cross line position
-middle_line_position = 130
+middle_line_position = 380
 up_line_position = middle_line_position - 20
 down_line_position = middle_line_position + 20
 
 
 # Store Coco Names in a list
-classesFile = "coco.names"
+classesFile = "./models/coco.names"
 classNames = open(classesFile).read().strip().split('\n')
 print(classNames)
 print(len(classNames))
@@ -42,8 +42,8 @@ detected_classNames = []
 classes_names = ["Car","Motorbike","Bus","Truck"]
 
 ## Model Files
-modelConfiguration = 'yolov3-320.cfg'
-modelWeigheights = 'yolov3-320.weights'
+modelConfiguration = './models/yolov3-320.cfg'
+modelWeigheights = './models/yolov3-320.weights'
 
 # configure the network model
 net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeigheights)
@@ -119,7 +119,7 @@ def count_vehicle(box_id, img):
             insert_database(classes_names[index],1)
 
     # Draw circle in the middle of the rectangle
-    #cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
+    cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
     # print(up_list, down_list)
 
 # Function for finding the detected objects from the network output

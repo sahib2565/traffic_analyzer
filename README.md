@@ -2,3 +2,6 @@
 
 ## setup
 
+```
+make setup
+```

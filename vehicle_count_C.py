@@ -11,7 +11,7 @@ from tracker import *
 tracker = EuclideanDistTracker()
 
 # Initialize the videocapture object
-cap = cv2.VideoCapture('./runtime/Pexels Videos 2109463.mp4')
+cap = cv2.VideoCapture('./runtime/test.avi')
 input_size = 320
 
 # Detection confidence threshold
@@ -23,7 +23,7 @@ font_size = 0.5
 font_thickness = 2
 
 # Middle cross line position
-middle_line_position = 380
+middle_line_position = 100
 up_line_position = middle_line_position - 20
 down_line_position = middle_line_position + 20
 

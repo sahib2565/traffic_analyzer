@@ -22,7 +22,7 @@ nameprogram = "main.py"
 tracker = Sort()
 
 # Initialize the video capture object
-cap = cv2.VideoCapture("../video/test2.avi")
+cap = cv2.VideoCapture("../video/test.avi")
 input_size = 320
 
 # Detection confidence threshold
@@ -101,6 +101,7 @@ def count_vehicle(box_id, img):
         Function for coutning vehicle
     """
     x, y, w, h, id, index = box_id
+    #index = 0
 
     # Find the center of the rectangle for detection
     center = find_center(x, y, w, h)
@@ -182,8 +183,7 @@ def postProcess(outputs, img):
             cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
             detection.append([x, y, w, h, required_class_index.index(classIds[i])])
             det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100), required_class_index.index(classIds[i])])
-            
-
+            #det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100)])
     # Update the tracker for each object
     #np.set_printoptions(formatter={'float' : lambda x: "0:0.3f".format(x)})
     #det_sort = np.asarray(det_sort)
@@ -192,7 +192,6 @@ def postProcess(outputs, img):
     #boxes_ids = tracker.update(detection)
     boxes_ids = tracker.update(det_sort)
     for box_id in boxes_ids:
-        print(box_id)
         count_vehicle(box_id, img)
 
 
@@ -261,9 +260,7 @@ if __name__ == '__main__':
 
 
 """
-
 Query:
-
 from(bucket: "vehicle")
   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
   |> filter(fn: (r) => r["_measurement"] == "count")

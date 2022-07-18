@@ -207,7 +207,7 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5))):
+  def update(self,dets=np.empty((0, 5))):
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
@@ -249,6 +249,10 @@ class Sort(object):
         if(trk.time_since_update > self.max_age):
           self.trackers.pop(i)
     if(len(ret)>0):
+      print("ID!")
+      print(dets[0][5])
+      print(ret)
+      ret.append(np.concatenate((dets[0][5])).reshape(1,-1))
       return np.concatenate(ret)
     return np.empty((0,5))
 

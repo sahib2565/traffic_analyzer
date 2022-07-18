@@ -11,6 +11,7 @@ import numpy as np
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 from tracker import *
+from sort import *
 
 
 __author__ = "Sahib Singh Cheema"
@@ -18,22 +19,22 @@ nameprogram = "main.py"
 
 # Initalizing some variable
 # Initialize the Tracker
-tracker = EuclideanDistTracker()
+tracker = Sort()
 
 # Initialize the video capture object
-cap = cv2.VideoCapture("../video/test.avi")
+cap = cv2.VideoCapture("../video/test2.avi")
 input_size = 320
 
 # Detection confidence threshold
-confThreshold = 0.2
-nmsThreshold = 0.2
+confThreshold = 0.6
+nmsThreshold = 0.6
 
 font_color = (0, 0, 255)
 font_size = (0.5)
 font_thickness = 2
 
 # Middle cross line position
-middle_line_position = 250
+middle_line_position = 200
 up_line_position = middle_line_position - 20
 down_line_position = middle_line_position + 20
 
@@ -53,6 +54,8 @@ modelWeigheights = "../yolov/yolov3-320.weights"
 # configure the network model
 
 net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeigheights)
+net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
 # Define random color for each class
 
@@ -145,6 +148,7 @@ def postProcess(outputs, img):
     classIds = []
     confidence_scores = []
     detection = []
+    det_sort = []
     for output in outputs:
         for det in output:
             scores = det[5:]
@@ -177,11 +181,18 @@ def postProcess(outputs, img):
             # Draw bounding rectangle
             cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
             detection.append([x, y, w, h, required_class_index.index(classIds[i])])
+            det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100), required_class_index.index(classIds[i])])
+            
 
     # Update the tracker for each object
-    print(detection)
-    boxes_ids = tracker.update(detection)
+    #np.set_printoptions(formatter={'float' : lambda x: "0:0.3f".format(x)})
+    #det_sort = np.asarray(det_sort)
+    det_sort = np.array(det_sort)
+    print(det_sort)
+    #boxes_ids = tracker.update(detection)
+    boxes_ids = tracker.update(det_sort)
     for box_id in boxes_ids:
+        print(box_id)
         count_vehicle(box_id, img)
 
 

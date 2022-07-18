@@ -130,7 +130,7 @@ def count_vehicle(box_id, img):
             insert_database(classes_names[index], 1)
 
     # Draw circle in the middle of the rectangle
-    cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
+    #cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
 
 
 def trace_ex(file_out):
@@ -188,7 +188,7 @@ def postProcess(outputs, img):
     #np.set_printoptions(formatter={'float' : lambda x: "0:0.3f".format(x)})
     #det_sort = np.asarray(det_sort)
     det_sort = np.array(det_sort)
-    print(det_sort)
+    #print(det_sort)
     #boxes_ids = tracker.update(detection)
     boxes_ids = tracker.update(det_sort)
     for box_id in boxes_ids:

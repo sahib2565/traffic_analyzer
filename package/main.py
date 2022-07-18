@@ -122,12 +122,12 @@ def count_vehicle(box_id, img):
     elif iy < up_line_position:
         if id in temp_down_list:
             temp_down_list.remove(id)
-            insert_database(classes_names[index], 2)
+            insert_database(classes_names[int(index)], 2)
 
     elif iy > down_line_position:
         if id in temp_up_list:
             temp_up_list.remove(id)
-            insert_database(classes_names[index], 1)
+            insert_database(classes_names[int(index)], 1)
 
     # Draw circle in the middle of the rectangle
     #cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here

@@ -31,7 +31,7 @@ pip install opencv-python
 Install the weights file from [here](https://drive.google.com/file/d/1Ru6tmkTI3DVtQKtV2XP00lkj2yU5J7i2/view?usp=sharing).
 
 Put the file inside the folder yolov
-## Runing Car Counter with YOLOX-s
+## Runing main.py
 
 Go to the package folder and run this command:
 ```bash

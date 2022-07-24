@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
-from tracker import *
+import argparse
 from sort import *
 
 
@@ -21,8 +21,32 @@ nameprogram = "main.py"
 # Initialize the Tracker
 tracker = Sort()
 
+# Setting arguments
+# username, password, ip_address, channel_id
+parser = argparse.ArgumentParser(
+    description="Pass cctv and database credentials")
+parser.add_argument('-u', '--username', type=str,
+                    metavar='', help='Username of the camera')
+parser.add_argument('-p', '--password', type=str,
+                    metavar='', help='Password of the camera')
+parser.add_argument('-i', '--ipadress', type=str,
+                    metavar='', help='IP adress of the camera')
+parser.add_argument('-c', '--channel_id', type=str,
+                    metavar='', help='Id of the channel')
+args = parser.parse_args()
+
+# Setting up RTSP protocol
+
+
+def create_camera(username, password, ip_address, channel_id):
+    rtsp = "rtsp://" + username + ":" + password + "@" + \
+        ip_address + "/Streaming/channels/" + channel_id
+    return rtsp
+
+
 # Initialize the video capture object
-cap = cv2.VideoCapture("../video/test.avi")
+cap = cv2.VideoCapture(create_camera(
+    args.username, args.password, args.ipadress, args.channel_id))
 input_size = 320
 
 # Detection confidence threshold
@@ -62,9 +86,10 @@ net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 np.random.seed(42)
 colors = np.random.randint(0, 255, size=(len(classNames), 3), dtype='uint8')
 
-# Setting up the Client
+# Setting up the Client, change the variables according to your database
 
-client = InfluxDBClient(url="http://localhost:8086",org="SSC Database",token="RMI4Zw0UB7RtxsCJi1MvtbmabI6Bdbw25JO6d0UcuxqPspIYHVvmHR8uWBKFr96YePY9GVT5CpeYE5WrKD219w==")
+client = InfluxDBClient(url="http://localhost:8086", org="SSC Database",
+                        token="RMI4Zw0UB7RtxsCJi1MvtbmabI6Bdbw25JO6d0UcuxqPspIYHVvmHR8uWBKFr96YePY9GVT5CpeYE5WrKD219w==")
 
 
 def insert_database(type, direction):
@@ -77,7 +102,8 @@ def insert_database(type, direction):
         "fields": {"way": direction}
     }
     write_api = client.write_api(write_options=SYNCHRONOUS)
-    write_api.write("vehicle", "SSC Database", data)  # change the first two variables for your db
+    # change the first two variables for your db
+    write_api.write("vehicle", "SSC Database", data)
 
 
 def find_center(x, y, w, h):
@@ -131,10 +157,13 @@ def count_vehicle(box_id, img):
             insert_database(classes_names[int(index)], 1)
 
     # Draw circle in the middle of the rectangle
-    #cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
+    # cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
 
 
 def trace_ex(file_out):
+    """
+        Function for tracing the execution
+    """
     msg = "Esecuzione " + nameprogram + " con " + sys.version + "\n"
     file_out.write(msg)
 
@@ -165,7 +194,8 @@ def postProcess(outputs, img):
                     confidence_scores.append(float(confidence))
 
     # Apply Non-Max Suppression
-    indices = cv2.dnn.NMSBoxes(boxes, confidence_scores, confThreshold, nmsThreshold)
+    indices = cv2.dnn.NMSBoxes(
+        boxes, confidence_scores, confThreshold, nmsThreshold)
     # print(classIds)
     if len(indices) > 0:
         for i in indices.flatten():
@@ -175,20 +205,22 @@ def postProcess(outputs, img):
             color = [int(c) for c in colors[classIds[i]]]
             name = classNames[classIds[i]]
             detected_classNames.append(name)
-            # Draw classname and confidence score 
+            # Draw classname and confidence score
             cv2.putText(img, f'{name.upper()} {int(confidence_scores[i]*100)}%',
-                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+                        (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
             # Draw bounding rectangle
             cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
-            detection.append([x, y, w, h, required_class_index.index(classIds[i])])
-            det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100), required_class_index.index(classIds[i])])
+            detection.append(
+                [x, y, w, h, required_class_index.index(classIds[i])])
+            det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100),
+                            required_class_index.index(classIds[i])])
             #det_sort.append([x, y, x+w, y+h, (confidence_scores[i]*100)])
     # Update the tracker for each object
     #np.set_printoptions(formatter={'float' : lambda x: "0:0.3f".format(x)})
     #det_sort = np.asarray(det_sort)
     det_sort = np.array(det_sort)
-    #print(det_sort)
+    # print(det_sort)
     #boxes_ids = tracker.update(detection)
     boxes_ids = tracker.update(det_sort)
     for box_id in boxes_ids:
@@ -196,27 +228,35 @@ def postProcess(outputs, img):
 
 
 def realTime():
+    """
+        Function to process the video
+    """
     while True:
         success, img = cap.read()
         img = cv2.resize(img, (0, 0), None, 0.5, 0.5)
         ih, iw, channels = img.shape
-        blob = cv2.dnn.blobFromImage(img, 1 / 255, (input_size, input_size), [0, 0, 0], 1, crop=False)
+        blob = cv2.dnn.blobFromImage(
+            img, 1 / 255, (input_size, input_size), [0, 0, 0], 1, crop=False)
 
         # Set the input of the network
         net.setInput(blob)
         layersNames = net.getLayerNames()
-        outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
+        outputNames = [(layersNames[i - 1])
+                       for i in net.getUnconnectedOutLayers()]
         # Feed data to the network
         outputs = net.forward(outputNames)
-    
+
         # Find the objects from the network output
         postProcess(outputs, img)
 
         # Draw the crossing lines
 
-        cv2.line(img, (0, middle_line_position), (iw, middle_line_position), (255, 0, 255), 2)
-        cv2.line(img, (0, up_line_position), (iw, up_line_position), (0, 0, 255), 2)
-        cv2.line(img, (0, down_line_position), (iw, down_line_position), (0, 0, 255), 2)
+        cv2.line(img, (0, middle_line_position),
+                 (iw, middle_line_position), (255, 0, 255), 2)
+        cv2.line(img, (0, up_line_position),
+                 (iw, up_line_position), (0, 0, 255), 2)
+        cv2.line(img, (0, down_line_position),
+                 (iw, down_line_position), (0, 0, 255), 2)
 
         # Show the frames
         cv2.imshow('Output', img)
@@ -270,3 +310,4 @@ from(bucket: "vehicle")
   |> group(columns: ["host", "_measurement"], mode:"by")
   |> yield(name: "mean")
 """
+
